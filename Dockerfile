@@ -1,24 +1,22 @@
 ############################################################
 # Dockerfile that builds a Subsistence Gameserver
 ############################################################
-FROM cm2network/steamcmd:root
+FROM silentmecha/steamcmd-wine:latest
 
 LABEL maintainer="bibi_agent000@msn.com"
 
 ENV STEAMAPPID 1362640
-ENV STEAMAPP subsistence
-ENV STEAMAPPDIR "${HOMEDIR}/${STEAMAPP}-dedicated"
+ENV STEAMAPP Subsistence
+ENV STEAMAPPDIR "${HOME}/${STEAMAPP}-dedicated"
 ENV DLURL https://raw.githubusercontent.com/Shinsentoh/docker-subsistence-server
 
+USER root
+
 RUN set -x \
-	&& apt-get update \
-	&& apt-get install -y --no-install-recommends --no-install-suggests \
-		wget=1.20.1-1.1 \
-	&& wget "${DLURL}/develop/etc/entry.sh" -O "${HOMEDIR}/entry.sh" \
 	&& mkdir -p "${STEAMAPPDIR}" \
-	&& chmod 755 "${HOMEDIR}/entry.sh" "${STEAMAPPDIR}" \
-	&& chown "${USER}:${USER}" "${HOMEDIR}/entry.sh" "${STEAMAPPDIR}" \
-	&& rm -rf /var/lib/apt/lists/*
+	&& wget "${DLURL}/main/etc/entry.sh" -O "${HOME}/entry.sh" \
+	&& chmod 755 "${HOME}/entry.sh" "${STEAMAPPDIR}" \
+	&& chown "${USER}:${USER}" "${HOME}/entry.sh" "${STEAMAPPDIR}"
 
 ENV SBST_PORT=7777 \
 	SBST_QUERYPORT=27015 \
@@ -41,15 +39,13 @@ ENV SBST_PORT=7777 \
 
 USER ${USER}
 
-WORKDIR ${HOMEDIR}
+WORKDIR ${HOME}
 
-VOLUME "${STEAMAPPDIR}"
-
-CMD ["bash", "entry.sh"]
+VOLUME 	${STEAMAPPDIR}
 
 # Expose ports
-EXPOSE 7777/udp \
-	27015/tcp \
-	27015/udp \
-	20560/tcp \
-	20560/udp
+EXPOSE 	${SBST_PORT}/udp \
+		${SBST_QUERYPORT}/tcp \
+		${SBST_QUERYPORT}/udp
+
+CMD ["bash", "entry.sh"]
